@@ -88,6 +88,27 @@ curl -s -H "X-API-Key: pmk_…" https://mev.parascan.dev/api/sandwiches?limit=20
 Keys are free — **[open an issue](https://github.com/krimdev/paramev/issues)**
 with a line about what you're building.
 
+## MCP server (for agents)
+
+LLMs are the brain; tools are the hands. **[`mcp/`](mcp/)** is a
+[Model Context Protocol](https://modelcontextprotocol.io) server that hands an
+agent three tools over the live data: `get_pool_risk` (is this pool getting
+sandwiched right now?), `list_sandwiches` (filtered history) and
+`get_mev_summary`. An execution agent can check a pool's toxicity **before**
+routing a swap and size its slippage from the answer.
+
+Zero dependencies, stdio transport. Point any MCP client at it:
+
+```json
+{
+  "mcpServers": {
+    "paramev": { "command": "node", "args": ["/path/to/paramev/mcp/server.js"] }
+  }
+}
+```
+
+See **[mcp/README.md](mcp/README.md)** for Claude Desktop / Claude Code setup.
+
 ## Where's the code?
 
 The detection engine runs in production against Monad mainnet. This repo is

@@ -1,0 +1,13 @@
+{
+  "name": "paramev-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for the ParaMEV Monad MEV observatory — pool risk, sandwich history and chain summary as tools an agent can call. Zero dependencies.",
+  "bin": { "paramev-mcp": "server.js" },
+  "main": "server.js",
+  "type": "commonjs",
+  "engines": { "node": ">=18" },
+  "keywords": ["mcp", "model-context-protocol", "monad", "mev", "sandwich", "defi", "agent"],
+  "homepage": "https://mev.parascan.dev",
+  "repository": { "type": "git", "url": "https://github.com/krimdev/paramev" },
+  "license": "MIT"
+}
