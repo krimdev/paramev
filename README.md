@@ -36,11 +36,11 @@ Live at [mev.parascan.dev](https://mev.parascan.dev), auto-refreshing:
 | 🥪 **Sandwich feed** | every confirmed attack: venue, pool, attacker, victim count, block span, **profit in USD** — live detections and historical backfill in one stream |
 | 🏆 **Top extractors** | ranked bot roster with per-bot sandwich counts and extracted USD |
 | 💸 **Extracted (USD)** | gross value captured, priced leg by leg at the victim's own execution price (see [METHODOLOGY](METHODOLOGY.md)) |
-| ⚔️ **Cross-venue coverage** | Uniswap v2 + v3 + v4 pools **and** Kuru's central-limit orderbooks — CLOB sandwiches are invisible to AMM-only tooling |
+| ⚔️ **Cross-venue coverage** | Uniswap v2/v3/v4, **PancakeSwap v3**, **LFJ Liquidity Book** and Kuru's central-limit orderbooks — CLOB sandwiches are invisible to AMM-only tooling, and aggregators (Kyberswap, Matcha…) are covered through the pools they route into |
 | ⚡ **Atomic-arb candidates** | single transactions swapping through ≥2 pools, streamed live |
 | 🔥 **Most contended pools** | where trading activity concentrates |
 | 📈 **Hourly small multiples** | swaps / arbs / sandwiches over the last 48h |
-| 🔌 **Public JSON API** | `/api/summary`, `/api/sandwiches`, `/api/arbs` — CORS-open, API keys for agents ([details below](#public-api)) |
+| 🔌 **Public JSON API** | `/api/summary`, `/api/sandwiches` (filterable, full history), `/api/risk`, `/api/arbs` — CORS-open, API keys for agents ([details below](#public-api)) |
 
 ## Real mainnet results
 
@@ -73,7 +73,8 @@ curl -s https://mev.parascan.dev/api/summary | jq .totals
 | Endpoint | Contents |
 |---|---|
 | `GET /api/summary` | totals, top extractors, contended pools, hourly series, coverage |
-| `GET /api/sandwiches?limit=50` | recent confirmed sandwiches with profit + tx hashes |
+| `GET /api/sandwiches` | **full sandwich history**, filterable by `pool`, `attacker`, `venue`, `token` (address or symbol), `sinceTs` — plus a `sinceBlock` cursor for incremental polling (feed the returned `lastBlock` back and never miss or re-download anything) |
+| `GET /api/risk?pool=…` or `?token=…` | pool/token toxicity **right now** — risk level, last-24h stats, most recent sandwich, active bots — built for execution agents sizing slippage before a trade |
 | `GET /api/arbs?limit=30` | recent atomic-arb candidates |
 
 **Rate limits** — anonymous requests: 30/min per IP. Agents and integrations

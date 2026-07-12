@@ -6,23 +6,31 @@ Numbers cited below were measured July 2026 on chain 143 via the public RPC.
 ## 1. Decoding the flow
 
 Everything starts from raw `eth_getLogs` over swap-event topics — no tracing,
-no mempool access, no privileged infrastructure. Four venue families are
+no mempool access, no privileged infrastructure. Six venue families are
 decoded into one normalized swap shape:
 
 | Venue | Event source | Share of decoded flow* |
 |---|---|---|
-| Uniswap v4 singleton | `Swap` (pool-id keyed) | ~37% |
-| Kuru CLOB | `Trade` (orderbook fills) | ~36% |
-| Uniswap v3 pools | `Swap` | ~25% |
-| Uniswap v2 pairs | `Swap` | ~3% |
+| Kuru CLOB | `Trade` (orderbook fills) | ~37% |
+| Uniswap v4 singleton | `Swap` (pool-id keyed) | ~24% |
+| PancakeSwap v3 | `Swap` (v3 fork + protocol-fee fields) | ~17% |
+| Uniswap v3 pools | `Swap` | ~13% |
+| LFJ Liquidity Book | `Swap` (one event per bin crossed) | ~8% |
+| Uniswap v2 pairs | `Swap` (PancakeSwap v2 emits the same topic) | ~1% |
 
-*\*510k-block sample, July 2026. An AMM-only monitor is blind to over a third
-of Monad's swap flow.*
+*\*Live sample, July 2026 — shares move with the market. On Monad,
+PancakeSwap v3 currently out-trades Uniswap v3. An AMM-only monitor is
+blind to over a third of Monad's swap flow.*
 
 Kuru's `Trade` event carries the **taker's `txOrigin` in the event itself** —
 sandwich attribution on Kuru needs zero extra RPC lookups.
 
-## 2. AMM sandwiches (v2 / v3 / v4)
+Aggregators (Kyberswap, Matcha, Clober's meta-aggregator…) hold no pools of
+their own: they route orders into the venues above, so their flow — and any
+sandwich around it — is covered by construction and attributed to the pool
+where it executed.
+
+## 2. AMM sandwiches (v2 / v3 / v4 / PancakeSwap v3 / LFJ)
 
 Classic bracket scan over a sliding block window, per pool:
 
@@ -42,6 +50,15 @@ Classic bracket scan over a sliding block window, per pool:
 Transaction metadata is fetched in batched JSON-RPC lookups with retries.
 When lookups stay unresolved after all retries the run reports it explicitly:
 **the AMM count is a floor, never an extrapolation.**
+
+Venue-specific notes: PancakeSwap v3 is a Uniswap v3 fork whose `Swap` event
+appends two protocol-fee words — same pool-perspective amounts, distinct
+topic. LFJ's Liquidity Book emits **one `Swap` per bin crossed** with amounts
+packed two-per-word and net of protocol fees; same-transaction same-direction
+events are collapsed into one action before the bracket scan, and a pair's
+tokens are identified from the exact-value transfers in the attacker's own
+receipts (LB pairs expose no `token0()`/`token1()` getters — verified sums:
+transfer in = Σ amountsIn + Σ protocolFees, transfer out = Σ amountsOut).
 
 ## 3. Kuru CLOB sandwiches
 

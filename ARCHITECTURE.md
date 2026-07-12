@@ -15,7 +15,7 @@ chain head.
                           │  1.5s tick, 40- │  (catches up ≤300 blocks/tick)
                           │  block window   │
                           └────────┬────────┘
-                                   │ normalized swaps (v2/v3/v4/kuru)
+                                   │ normalized swaps (v2/v3/v4/pcs3/lfj/kuru)
                  ┌─────────────────┼──────────────────┐
                  ▼                 ▼                  ▼
           AMM bracket        Kuru txOrigin       atomic-arb
@@ -52,6 +52,11 @@ chain head.
   (tmp + rename). Live watcher and backfill both go through the same
   `recordSandwich`/`bumpHour` functions, so the numbers mean the same thing
   wherever they come from.
+- **Journal** — every confirmed sandwich is also appended as one NDJSON line
+  to an append-only file (last line per `front|back` key wins, so entries can
+  be re-appended once priced). It is the full-history store behind the
+  filterable API — the dashboard's recent window stays capped, the journal
+  never forgets.
 - **Web** — one file serving the static dashboard plus the API. The
   dashboard is a single self-contained HTML page (~25 KB) that polls the API.
 
@@ -62,9 +67,13 @@ CORS-open JSON:
 | Endpoint | Contents |
 |---|---|
 | `GET /api/summary` | totals (blocks, swaps by venue, sandwiches, victims, extracted USD, attacker gas), top extractors, most contended pools, hourly series, coverage |
-| `GET /api/sandwiches?limit=50` | recent confirmed sandwiches: venue, pool, attacker, victims, block span, tx hashes, profit |
+| `GET /api/sandwiches` | full sandwich history from the journal, filterable (`pool`, `attacker`, `venue`, `token`, `sinceTs`) with a `sinceBlock` cursor for incremental polling |
+| `GET /api/risk?pool=…` / `?token=…` | current toxicity: risk level, 24h stats, last sandwich, active bots |
 | `GET /api/arbs?limit=30` | recent atomic-arb candidate transactions |
 | `GET /healthz` | watcher liveness + last block seen |
+
+Full reference with object shapes and examples:
+[mev.parascan.dev/docs](https://mev.parascan.dev/docs).
 
 Try it:
 
