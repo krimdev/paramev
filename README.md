@@ -61,6 +61,9 @@ public RPC — see the live numbers at [mev.parascan.dev](https://mev.parascan.d
 
 ## Public API
 
+**Full reference: [mev.parascan.dev/docs](https://mev.parascan.dev/docs)** —
+endpoints, object shapes, authentication, rate limits.
+
 CORS-open JSON, no signup for casual use:
 
 ```sh
