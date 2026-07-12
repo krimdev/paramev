@@ -57,7 +57,7 @@ chain head.
 
 ## Public API
 
-CORS-open, no key, JSON:
+CORS-open JSON:
 
 | Endpoint | Contents |
 |---|---|
@@ -72,9 +72,15 @@ Try it:
 curl -s https://mev.parascan.dev/api/summary | jq .totals
 ```
 
+**Rate limits.** Anonymous requests are limited to 30/min per IP — plenty
+for a dashboard or a notebook. Agents and integrations pass an API key
+(`X-API-Key` header or `?key=`) for 600/min. Keys are free on request:
+[open an issue](https://github.com/krimdev/paramev/issues). Over-limit
+requests get a JSON `429` with a `retry-after` header — back off and retry.
+
 This API is the base layer for the agent-facing surface (structured MEV data
-any AI agent can consume without auth) — an MCP server over the same data is
-the next step.
+any AI agent can consume) — an MCP server over the same data is the next
+step.
 
 ## Design choices
 
